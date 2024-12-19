@@ -1,0 +1,3 @@
+# deploy-4-developer
+
+This project, **deploy-4-developer**, is an open-source tool designed for developers to automate deployment tasks in their workflows. It simplifies tasks such as file uploads, remote command execution, local file deletions, and changes based on predefined configurations in a JSON-like `deploy.json` file. After installation via pip or other package managers, the tool creates an executable file (`deploy0`) in the Python environment's bin directory to prevent conflicts with other commands. This tool is ideal for developers who need a quick, reliable, and customizable deployment process without having to manually manage complex workflows.
