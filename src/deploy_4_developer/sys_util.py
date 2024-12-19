@@ -62,7 +62,7 @@ def ssh_action(host: str, port: int, username: str, password: str, actions: List
             else:
                 log.error(f"Unknown action type: {action} of type: {type(action)}")
     except Exception as e:
-        log.error(f"An error occurred.",exc_info=True)
+        log.error("An error occurred.",exc_info=True)
         raise e
     finally:
         transport.close()
