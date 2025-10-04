@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [project.scripts]
-deploy0 = "deploy_4_developer.deploy:main"
+deploy4dev = "deploy_4_developer.cli.deploy:main"
 
 [build-system]
 requires = ["hatchling==1.26.3"]

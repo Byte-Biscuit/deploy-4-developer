@@ -1,0 +1,22 @@
+{
+    "host": "hostname or ip",
+    "user": "user",
+    "password": "@env:env_name",
+    "pre-actions": [
+        "tarz  -i deployment service namespace serviceaccount ingress example-component"
+    ],
+    "actions": [
+        "mv /remote/path/app /remote/path/app_`date +%Y%m%d%H%M%S` ",
+        {
+            "type": "upload",
+            "from": "C:\\path\\to\\app.tar.gz",
+            "to": "/remote/path/app.tar.gz"
+        },
+        "mkdir -p /remote/path/app",
+        "tar -zxvf /remote/path/app.tar.gz -C /remote/path/app",
+        "rm -f /remote/path/app.tar.gz",
+        "kubectl apply -f /remote/path/app/deployment.yaml",
+        "kubectl rollout restart deployment.apps/example-deployment"
+    ],
+    "post-actions": ["del /f C:\\path\\to\\app.tar.gz"]
+}

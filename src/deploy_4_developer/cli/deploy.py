@@ -4,15 +4,25 @@ import argparse
 import getpass
 import json
 import os
-from deploy_4_developer.sys_util import ssh_action, UploadFile, exec_local_cmd_without_response
+from deploy_4_developer.cli.sys_util import (
+    ssh_action,
+    UploadFile,
+    exec_local_cmd_without_response,
+)
 
 log = logging.getLogger(__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Deploy Helper Tool')
-    parser.add_argument('--deploy', '-d', default="deploy.json", type=str, required=False,
-                        help='Path to the deployment configuration file')
+    parser = argparse.ArgumentParser(description="Deploy Helper Tool")
+    parser.add_argument(
+        "--deploy",
+        "-d",
+        default="deploy.json",
+        type=str,
+        required=False,
+        help="Path to the deployment configuration file",
+    )
     args = parser.parse_args()
 
     # Set the deployment file name
@@ -65,12 +75,16 @@ def main():
         if isinstance(action, dict):
             action_type = action["type"]
             if "upload" == action_type:
-                actions.append(UploadFile(
-                    source=action["from"],
-                    target=action["to"]))
-
+                actions.append(UploadFile(source=action["from"], target=action["to"]))
+    # Password must be provided either in the JSON file or via environment variable
     if "password" in deploy_json:
-        password = deploy_json.get("password")
+        value = deploy_json.get("password")
+        if value.startswith("@env:"):
+            var = value[5:]
+            password = os.environ.get(var)
+            if not password:
+                log.error(f"Environment variable '{var}' is not set.")
+                exit(1)
     else:
         password = getpass.getpass(f"User [{user}] please enter your password: ")
 
@@ -78,7 +92,9 @@ def main():
     if actions:
         log.info("Starting to execute SSH actions.")
         try:
-            ssh_action(host=host, port=port, username=user, password=password, actions=actions)
+            ssh_action(
+                host=host, port=port, username=user, password=password, actions=actions
+            )
         except:
             exit(1)
 
@@ -92,5 +108,5 @@ def main():
             exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

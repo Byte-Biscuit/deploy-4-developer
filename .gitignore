@@ -10,4 +10,4 @@ wheels/
 .venv
 /.scannerwork
 .env
-deploy.json
+sonar-project.properties
