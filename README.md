@@ -1,6 +1,6 @@
 # deploy-4-developer
 
-[简体中文 / 简体中文版本请见](README.zh-CN.md)
+[简体中文](README.zh-CN.md)
 
 `deploy-4-developer` is a lightweight deployment automation tool designed for developers. It reads a structured `deploy.json` configuration file to help you upload local build artifacts to a remote host, execute commands on the remote host, and perform local cleanup tasks—simplifying deployments for development and test environments.
 

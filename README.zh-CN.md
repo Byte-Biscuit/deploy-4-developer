@@ -1,6 +1,6 @@
 # deploy-4-developer
 
-[English / English version: README.md]
+[English](README.md)
 
 `deploy-4-developer` 是为开发者设计的轻量级部署自动化工具。它通过读取一个结构化的 `deploy.json` 配置文件，帮助你把本地构建产物上传到远端主机、在远端执行命令、以及在本地做收尾清理等常见部署操作，从而简化开发/测试环境的部署流程并提升效率。
 
