@@ -115,8 +115,8 @@ deploy4dev -d deploy-staging.json
 git clone git@github.com:Byte-Biscuit/deploy-4-developer.git
 # 切换到项目目录
 cd deploy-4-developer
-# 项目使用rye进行构建管理,请预先配置好rye环境
-rye sync
+# 项目使用uv进行构建管理,请预先配置好uv环境
+uv sync
 ```
 
 -   欢迎通过 issue/PR 提交功能改进。

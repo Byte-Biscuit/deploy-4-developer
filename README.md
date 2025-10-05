@@ -113,8 +113,8 @@ deploy4dev -d deploy-staging.json
 git clone git@github.com:Byte-Biscuit/deploy-4-developer.git
 # Change to project directory
 cd deploy-4-developer
-# The project uses rye for build management; make sure your rye environment is ready
-rye sync
+# The project uses uv for build management; make sure your uv environment is ready
+uv sync
 ```
 
 -   Contributions via issues and pull requests are welcome.
