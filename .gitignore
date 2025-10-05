@@ -9,5 +9,4 @@ wheels/
 # venv
 .venv
 /.scannerwork
-.env
 sonar-project.properties

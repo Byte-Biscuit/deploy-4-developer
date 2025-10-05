@@ -24,6 +24,10 @@ deploy4dev = "deploy_4_developer.cli.deploy:main"
 requires = ["hatchling==1.26.3"]
 build-backend = "hatchling.build"
 
+[project.urls]
+Homepage = "https://github.com/Byte-Biscuit/deploy-4-developer"
+Repository = "https://github.com/Byte-Biscuit/deploy-4-developer"
+"Bug Tracker" = "https://github.com/Byte-Biscuit/deploy-4-developer/issues"
 
 [tool.hatch.metadata]
 allow-direct-references = true
