@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from collections import namedtuple
 from typing import List, Union
 import traceback
@@ -7,15 +6,22 @@ import paramiko
 import time
 import locale
 import subprocess
+from deploy_4_developer.cli.logger_init import get_logger
 
-log = logging.getLogger(__name__)
+log = get_logger(name=__name__)
 
 UploadFile = namedtuple("UploadFile", "source, target")
 
 
-def ssh_action(host: str, port: int, username: str, password: str, actions: List[Union[str, UploadFile]],
-               default_recv_length: int = 1024,
-               recv_encode: str = "utf-8"):
+def ssh_action(
+    host: str,
+    port: int,
+    username: str,
+    password: str,
+    actions: List[Union[str, UploadFile]],
+    default_recv_length: int = 1024,
+    recv_encode: str = "utf-8",
+):
     """
     SSH Remote Operation Module
     :param host: The hostname or IP address of the remote server.
@@ -50,9 +56,14 @@ def ssh_action(host: str, port: int, username: str, password: str, actions: List
         sftp = paramiko.SFTPClient.from_transport(transport)
         with open(upload_file.source, "rb") as fp:
             data = fp.read()
-        log.info(f"Starting to upload file: {upload_file.source} to {upload_file.target}")
+        log.info(
+            f"Starting to upload file: {upload_file.source} to {upload_file.target}"
+        )
         sftp.open(upload_file.target, "wb").write(data)
-        log.info(f"File upload completed, time taken: {int(time.time() - start_time)} seconds")
+        log.info(
+            f"File upload completed, time taken: {int(time.time() - start_time)} seconds"
+        )
+
     try:
         for action in actions:
             if isinstance(action, str):
@@ -62,13 +73,13 @@ def ssh_action(host: str, port: int, username: str, password: str, actions: List
             else:
                 log.error(f"Unknown action type: {action} of type: {type(action)}")
     except Exception as e:
-        log.error("An error occurred.",exc_info=True)
+        log.error("An error occurred.", exc_info=True)
         raise e
     finally:
         transport.close()
 
 
-def get_user_confirmation(message='Do you want to proceed? (y/n): '):
+def get_user_confirmation(message="Do you want to proceed? (y/n): "):
     """
     Ask the user for confirmation.
     :param message: The prompt message to display.
@@ -76,9 +87,9 @@ def get_user_confirmation(message='Do you want to proceed? (y/n): '):
     """
     while True:
         user_input = input(message).lower()
-        if user_input == 'y':
+        if user_input == "y":
             return True
-        elif user_input == 'n':
+        elif user_input == "n":
             return False
         else:
             print('Invalid input. Please enter "y" or "n".')
@@ -92,11 +103,17 @@ def exec_local_cmd(cmd):
     """
     try:
         log.info(f"Start executing command: {cmd}")
-        response = subprocess.Popen(args=cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = response.communicate()  # Use communicate() to capture both stdout and stderr
+        response = subprocess.Popen(
+            args=cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        stdout, stderr = (
+            response.communicate()
+        )  # Use communicate() to capture both stdout and stderr
 
         if stderr:
-            log.error(f"Error executing command: {stderr.decode(locale.getpreferredencoding())}")
+            log.error(
+                f"Error executing command: {stderr.decode(locale.getpreferredencoding())}"
+            )
         else:
             log.info(f"Command output: {stdout.decode(locale.getpreferredencoding())}")
 
@@ -116,7 +133,9 @@ def exec_local_cmd_without_response(cmd):
     """
     try:
         log.info(f"Start executing command: {cmd}")
-        subprocess.check_call(args=cmd, shell=True)  # Using check_call to raise an exception on failure
+        subprocess.check_call(
+            args=cmd, shell=True
+        )  # Using check_call to raise an exception on failure
     except subprocess.CalledProcessError as e:
         log.error(f"Command failed with return code {e.returncode}: {e}")
         raise e

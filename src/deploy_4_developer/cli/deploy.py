@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import sys
 import argparse
 import getpass
 import json
@@ -9,19 +10,23 @@ from deploy_4_developer.cli.sys_util import (
     UploadFile,
     exec_local_cmd_without_response,
 )
+from deploy_4_developer.cli.logger_init import get_logger
 
-log = logging.getLogger(__name__)
+log = get_logger(name=__name__)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Deploy Helper Tool")
+    parser = argparse.ArgumentParser(
+        prog="deploy4dev", description="Deploy Helper Tool"
+    )
     parser.add_argument(
-        "--deploy",
         "-d",
+        "--deploy",
+        metavar="deploy.json",
         default="deploy.json",
         type=str,
         required=False,
-        help="Path to the deployment configuration file",
+        help="Path to the deployment configuration file (default: %(default)s)",
     )
     args = parser.parse_args()
 
@@ -34,7 +39,7 @@ def main():
 
     if not os.path.exists(deploy_file):
         log.info(f"Deployment file: {deploy_file} does not exist.")
-        exit(0)
+        return 0
 
     log.info(f"Deploying using the configuration file: {deploy_file}")
 
@@ -42,16 +47,16 @@ def main():
         deploy_json = json.load(fp)
         if not isinstance(deploy_json, dict):
             log.error("The deployment configuration file is not a valid JSON file.")
-            exit(1)
+            return 1
 
     user = deploy_json.get("user")
     if not user:
         log.error("Missing 'user' key in the deployment configuration.")
-        exit(1)
+        return 1
     host = deploy_json.get("host")
     if not host:
         log.error("Missing 'host' key in the deployment configuration.")
-        exit(1)
+        return 1
 
     port = 22
     if "port" in deploy_json:
@@ -64,7 +69,7 @@ def main():
             for act in pre_actions:
                 exec_local_cmd_without_response(act)
         except:
-            exit(1)
+            return 1
 
     # actions
     json_actions = deploy_json.get("actions")
@@ -84,7 +89,7 @@ def main():
             password = os.environ.get(var)
             if not password:
                 log.error(f"Environment variable '{var}' is not set.")
-                exit(1)
+                return 1
     else:
         password = getpass.getpass(f"User [{user}] please enter your password: ")
 
@@ -96,7 +101,7 @@ def main():
                 host=host, port=port, username=user, password=password, actions=actions
             )
         except:
-            exit(1)
+            return 1
 
     # post actions
     post_actions = deploy_json.get("post-actions")
@@ -105,8 +110,8 @@ def main():
             for act in post_actions:
                 exec_local_cmd_without_response(act)
         except:
-            exit(1)
+            return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

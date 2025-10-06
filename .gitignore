@@ -10,3 +10,6 @@ wheels/
 .venv
 /.scannerwork
 sonar-project.properties
+build
+dist
+release
