@@ -1,6 +1,6 @@
 [project]
 name = "deploy-4-developer"
-version = "0.0.1"
+version = "0.0.2"
 description = "An open-source tool for developers to automate deployment tasks, including file uploads and remote command execution."
 authors = [
     { name = "Biscuit Zhou", email = "biscuit_zhou@outlook.com" }
