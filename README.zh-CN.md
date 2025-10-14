@@ -65,7 +65,10 @@ which deploy4dev
 {
     "host": "hostname or ip",
     "user": "user",
+    "port": 22,
     "password": "@env:env_name",
+    "private_key_file": "/path/to/private/key",
+    "private_key_pass": "@env:env_name",
     "pre-actions": [
         "tarz  -i deployment service namespace serviceaccount ingress example-component"
     ],
@@ -90,6 +93,63 @@ which deploy4dev
 
 -   你可以在 `deploy.json` 中不配置 `password` 字段（推荐在交互式或本地临时运行时省略）。如果配置文件中未包含密码，CLI 会在运行时提示你输入密码（隐藏回显）。
 -   如果你希望在配置文件中指定一个引用，请使用环境变量占位形式，例如 `"password": "@env:env_name"`；程序会从操作系统环境变量 `env_name` 中读取值。请不要将明文密码写入配置文件。
+
+### 私钥登录（private key）
+
+本工具也支持使用 SSH 私钥文件进行认证，替代密码登录。请在配置中添加可选字段 `private_key_file`。Windows 示例：
+
+```json
+{
+    "host": "example.com",
+    "user": "deploy",
+    "private_key_file": "C:\\Users\\you\\.ssh\\id_rsa"
+}
+```
+
+在类 Unix 系统上请使用 POSIX 路径，例如：
+
+```json
+{
+    "host": "example.com",
+    "user": "deploy",
+    "private_key_file": "/home/ci/.ssh/id_rsa"
+}
+```
+
+注意：
+
+-   当存在 `private_key_file` 时，通常不再需要 `password` 字段。如果私钥受口令保护，可以使用可选字段 `private_key_pass`（可通过环境变量引用，例如 `"@env:KEY_PASSPHRASE"`），也可以在运行前使用 SSH agent（如 `ssh-agent`、Pageant 等）加载私钥。
+
+-   简要说明：确保运行 `deploy4dev` 的进程可以读取密钥文件；无须在此处作过多文件权限阐述，请根据你的环境适当保护密钥。
+
+-   你也可以不在配置中写入密钥文件，改为让 SSH agent 中加载密钥，然后直接运行 `deploy4dev`。
+
+### JSON 尾逗号警告
+
+JSON 语法不允许在数组或对象的最后一个元素后面出现逗号。一个常见的解析错误来自于在最后一项后错误地留下了逗号，例如：
+
+```json
+"actions": [
+    "cmd1",
+    "cmd2",
+]
+```
+
+上面是无效的，正确写法（没有尾逗号）如下：
+
+```json
+"actions": [
+    "cmd1",
+    "cmd2"
+]
+```
+
+校验 JSON 的方法：
+
+-   使用 Python 的 JSON 工具：`python -m json.tool deploy.json`（若 JSON 有误会显示错误）。
+-   在 PowerShell 中：`Get-Content deploy.json -Raw | ConvertFrom-Json`。
+
+如果运行 `deploy4dev` 时遇到 JSON 解析错误，请先检查是否存在尾逗号或使用上述工具进行验证。
 
 ### 开始部署
 

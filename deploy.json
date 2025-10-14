@@ -1,7 +1,10 @@
 {
     "host": "hostname or ip",
     "user": "user",
+    "port": 22,
     "password": "@env:env_name",
+    "private_key_file": "/path/to/private/key",
+    "private_key_pass": "@env:env_name",
     "pre-actions": [
         "tarz  -i deployment service namespace serviceaccount ingress example-component"
     ],

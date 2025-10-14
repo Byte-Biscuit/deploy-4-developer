@@ -82,6 +82,7 @@ def main():
             if "upload" == action_type:
                 actions.append(UploadFile(source=action["from"], target=action["to"]))
     # Password must be provided either in the JSON file or via environment variable
+    password = None
     if "password" in deploy_json:
         value = deploy_json.get("password")
         if value.startswith("@env:"):
@@ -90,15 +91,33 @@ def main():
             if not password:
                 log.error(f"Environment variable '{var}' is not set.")
                 return 1
-    else:
-        password = getpass.getpass(f"User [{user}] please enter your password: ")
+
+    # private key (optional)
+    private_key_file = None
+    private_key_pass = None
+    if "private_key_file" in deploy_json:
+        private_key_file = deploy_json.get("private_key_file")
+        if "private_key_pass" in deploy_json and deploy_json.get(
+            "private_key_pass"
+        ).startswith("@env:"):
+            var = deploy_json.get("private_key_pass")[5:]
+            private_key_pass = os.environ.get(var)
+
+    if not password and not private_key_file:
+        password = getpass.getpass(prompt=f"Password for {user}@{host}: ")
 
     # Execute SSH actions if there are any
     if actions:
         log.info("Starting to execute SSH actions.")
         try:
             ssh_action(
-                host=host, port=port, username=user, password=password, actions=actions
+                host=host,
+                port=port,
+                username=user,
+                password=password,
+                private_key_file=private_key_file,
+                private_key_pass=private_key_pass,
+                actions=actions,
             )
         except:
             return 1

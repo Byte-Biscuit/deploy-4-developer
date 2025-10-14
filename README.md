@@ -63,7 +63,10 @@ If these commands return a path, `deploy4dev` is installed correctly and can be 
 {
     "host": "hostname or ip",
     "user": "user",
+    "port": 22,
     "password": "@env:env_name",
+    "private_key_file": "/path/to/private/key",
+    "private_key_pass": "@env:env_name",
     "pre-actions": [
         "tarz  -i deployment service namespace serviceaccount ingress example-component"
     ],
@@ -88,6 +91,71 @@ About the `password` field:
 
 -   You may omit the `password` field in `deploy.json` (recommended for interactive or local runs). If the configuration file does not include a password, the CLI will prompt you to enter one at runtime (input is hidden).
 -   If you want to reference a password from the environment, use the environment placeholder form, for example `"password": "@env:env_name"`. The program will read the value from the operating system environment variable `env_name`. Do not store plain-text passwords in the configuration file.
+
+### Private key authentication
+
+deploy4dev also supports authenticating with an SSH private key instead of a password. To use a private key, add the optional `private_key_file` field to your configuration. Example (Windows path):
+
+```json
+{
+    "host": "example.com",
+    "user": "deploy",
+    "private_key_file": "C:\\Users\\you\\.ssh\\id_rsa"
+}
+```
+
+On Unix-like systems use a POSIX path, for example:
+
+```json
+{
+    "host": "example.com",
+    "user": "deploy",
+    "private_key_file": "/home/ci/.ssh/id_rsa"
+}
+```
+
+Notes:
+
+-   If `private_key_file` is present, `password` is usually not required. If the private key is protected by a passphrase, you can provide the passphrase with the optional `private_key_pass` field, or use an SSH agent (ssh-agent, Pageant, or similar). Example:
+
+```json
+{
+    "host": "example.com",
+    "user": "deploy",
+    "private_key_file": "/home/ci/.ssh/id_rsa",
+    "private_key_pass": "@env:KEY_PASSPHRASE"
+}
+```
+
+-   File access details: ensure the process running `deploy4dev` can read the key file; no lengthy discussion of filesystem ACLs is necessary here — keep keys protected as appropriate for your environment.
+-   Alternatively, load the key into an SSH agent before running `deploy4dev` and omit both `private_key_file` and `private_key_pass` from the config.
+
+### JSON trailing-comma warning
+
+JSON strictly forbids trailing commas in arrays and objects. A very common source of parse errors is leaving a comma after the last element. For example, this is invalid and will fail to parse:
+
+```json
+"actions": [
+    "cmd1",
+    "cmd2",
+]
+```
+
+The correct form (no trailing comma) is:
+
+```json
+"actions": [
+    "cmd1",
+    "cmd2"
+]
+```
+
+Ways to validate your JSON before running:
+
+-   Use Python's JSON tool: `python -m json.tool deploy.json` (this will print a formatted JSON or error on invalid input).
+-   In PowerShell: `Get-Content deploy.json -Raw | ConvertFrom-Json`.
+
+If you get a JSON parse error while running `deploy4dev`, check for trailing commas or use one of the validators above.
 
 ### Start a deployment
 
