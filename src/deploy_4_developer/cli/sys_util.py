@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
-from collections import namedtuple
-from typing import List, Union
-from pathlib import Path
-import traceback
 import codecs
-import paramiko
-import time
 import locale
 import subprocess
+import time
+import traceback
+from collections import namedtuple
+
+import paramiko
+
 from deploy_4_developer.cli.logger_init import get_logger
 
 log = get_logger(name=__name__)
@@ -15,14 +14,25 @@ log = get_logger(name=__name__)
 UploadFile = namedtuple("UploadFile", "source, target")
 
 
+def load_private_key(filename: str, password: str | None = None):
+    """
+    Load an SSH private key of any supported algorithm (RSA, Ed25519, ECDSA, etc.).
+
+    Uses Paramiko's type-agnostic loader so callers need not know the key type.
+    """
+    # Paramiko 4.0 uses `passphrase` (bytes); later versions renamed it to `password`.
+    passphrase = password.encode() if password is not None else None
+    return paramiko.PKey.from_path(filename, passphrase=passphrase)
+
+
 def ssh_action(
     host: str,
     port: int,
-    username: str = None,
-    password: str = None,
-    private_key_file: str = None,
-    private_key_pass: str = None,
-    actions: List[Union[str, UploadFile]] = None,
+    username: str | None = None,
+    password: str | None = None,
+    private_key_file: str | None = None,
+    private_key_pass: str | None = None,
+    actions: list[str | UploadFile] | None = None,
     default_recv_length: int = 1024,
     recv_encode: str = "utf-8",
 ):
@@ -47,11 +57,11 @@ def ssh_action(
     if not actions:
         log.error("No actions to perform.")
         return
+    if username is None:
+        raise ValueError("username is required for SSH authentication.")
     transport = paramiko.Transport((host, port))
     if private_key_file:
-        pkey = paramiko.RSAKey.from_private_key_file(
-            filename=private_key_file, password=private_key_pass
-        )
+        pkey = load_private_key(private_key_file, password=private_key_pass)
         transport.connect(username=username, pkey=pkey)
     else:
         transport.connect(username=username, password=password)
@@ -100,8 +110,8 @@ def ssh_action(
                         rest = decoder.decode(b"", final=True)
                         if rest:
                             log.info(rest)
-                    except Exception:
-                        pass
+                    except UnicodeDecodeError:
+                        log.debug("Failed to flush remaining decoder state.")
                     break
         except Exception as e:
             log.error("Error reading from SSH channel.", exc_info=e)
@@ -119,6 +129,8 @@ def ssh_action(
     def send_file(upload_file: UploadFile):
         start_time = time.time()
         sftp = paramiko.SFTPClient.from_transport(transport)
+        if sftp is None:
+            raise RuntimeError("Failed to open SFTP client from transport.")
         with open(upload_file.source, "rb") as fp:
             data = fp.read()
         log.info(
@@ -137,9 +149,9 @@ def ssh_action(
                 send_file(action)
             else:
                 log.error(f"Unknown action type: {action} of type: {type(action)}")
-    except Exception as e:
-        log.error("An error occurred.", exc_info=True)
-        raise e
+    except Exception:
+        log.exception("An error occurred.")
+        raise
     finally:
         transport.close()
 
@@ -184,8 +196,8 @@ def exec_local_cmd(cmd):
 
     except subprocess.SubprocessError as e:
         log.error(f"Subprocess error occurred while executing {cmd}: {e}")
-    except Exception as e:
-        log.error(f"An unexpected error occurred: {traceback.format_exc()}")
+    except Exception:
+        log.exception("An unexpected error occurred.")
     else:
         log.info(f"Command: {cmd} executed successfully.")
 

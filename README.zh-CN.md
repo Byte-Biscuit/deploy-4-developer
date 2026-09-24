@@ -96,13 +96,13 @@ which deploy4dev
 
 ### 私钥登录（private key）
 
-本工具也支持使用 SSH 私钥文件进行认证，替代密码登录。请在配置中添加可选字段 `private_key_file`。Windows 示例：
+本工具也支持使用 SSH 私钥文件进行认证，替代密码登录。支持常见的 OpenSSH 算法，包括 **RSA**、**Ed25519**、**ECDSA**。请在配置中添加可选字段 `private_key_file`。Windows 示例：
 
 ```json
 {
     "host": "example.com",
     "user": "deploy",
-    "private_key_file": "C:\\Users\\you\\.ssh\\id_rsa"
+    "private_key_file": "C:\\Users\\you\\.ssh\\id_ed25519"
 }
 ```
 
@@ -112,9 +112,11 @@ which deploy4dev
 {
     "host": "example.com",
     "user": "deploy",
-    "private_key_file": "/home/ci/.ssh/id_rsa"
+    "private_key_file": "/home/ci/.ssh/id_ed25519"
 }
 ```
+
+RSA 私钥（如 `id_rsa`）的用法与此前一致。
 
 注意：
 

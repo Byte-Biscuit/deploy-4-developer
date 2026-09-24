@@ -1,6 +1,6 @@
 [project]
 name = "deploy-4-developer"
-version = "0.0.4"
+version = "0.0.5"
 description = "An open-source tool for developers to automate deployment tasks, including file uploads and remote command execution."
 authors = [
     { name = "Biscuit Zhou", email = "biscuit_zhou@outlook.com" }
@@ -15,7 +15,13 @@ classifiers = [
 ]
 dependencies = [
     "paramiko>=4.0.0",
+]
+
+[dependency-groups]
+dev = [
     "pyinstaller>=6.16.0",
+    "pytest>=8.0.0",
+    "ruff>=0.14.0",
 ]
 
 [project.scripts]

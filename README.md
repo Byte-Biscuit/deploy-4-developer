@@ -94,13 +94,13 @@ About the `password` field:
 
 ### Private key authentication
 
-deploy4dev also supports authenticating with an SSH private key instead of a password. To use a private key, add the optional `private_key_file` field to your configuration. Example (Windows path):
+deploy4dev also supports authenticating with an SSH private key instead of a password. Common OpenSSH algorithms are supported, including **RSA**, **Ed25519**, and **ECDSA**. To use a private key, add the optional `private_key_file` field to your configuration. Example (Windows path):
 
 ```json
 {
     "host": "example.com",
     "user": "deploy",
-    "private_key_file": "C:\\Users\\you\\.ssh\\id_rsa"
+    "private_key_file": "C:\\Users\\you\\.ssh\\id_ed25519"
 }
 ```
 
@@ -110,9 +110,11 @@ On Unix-like systems use a POSIX path, for example:
 {
     "host": "example.com",
     "user": "deploy",
-    "private_key_file": "/home/ci/.ssh/id_rsa"
+    "private_key_file": "/home/ci/.ssh/id_ed25519"
 }
 ```
+
+RSA keys (e.g. `id_rsa`) continue to work the same way.
 
 Notes:
 
@@ -122,7 +124,7 @@ Notes:
 {
     "host": "example.com",
     "user": "deploy",
-    "private_key_file": "/home/ci/.ssh/id_rsa",
+    "private_key_file": "/home/ci/.ssh/id_ed25519",
     "private_key_pass": "@env:KEY_PASSPHRASE"
 }
 ```

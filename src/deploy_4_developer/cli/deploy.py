@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-import logging
-import sys
 import argparse
 import getpass
 import json
 import os
+import sys
+
+from deploy_4_developer.cli.logger_init import get_logger
 from deploy_4_developer.cli.sys_util import (
-    ssh_action,
     UploadFile,
     exec_local_cmd_without_response,
+    ssh_action,
 )
-from deploy_4_developer.cli.logger_init import get_logger
 
 log = get_logger(name=__name__)
 
@@ -60,7 +59,11 @@ def main():
 
     port = 22
     if "port" in deploy_json:
-        port = deploy_json.get("port")
+        raw_port = deploy_json["port"]
+        if not isinstance(raw_port, int):
+            log.error(f"Invalid 'port' value: {raw_port!r}")
+            return 1
+        port = raw_port
 
     # pre actions
     pre_actions = deploy_json.get("pre-actions")
@@ -68,11 +71,12 @@ def main():
         try:
             for act in pre_actions:
                 exec_local_cmd_without_response(act)
-        except:
+        except Exception:
+            log.exception("Pre-actions failed.")
             return 1
 
     # actions
-    json_actions = deploy_json.get("actions")
+    json_actions = deploy_json.get("actions") or []
     actions = []
     for action in json_actions:
         if isinstance(action, str):
@@ -84,24 +88,30 @@ def main():
     # Password must be provided either in the JSON file or via environment variable
     password = None
     if "password" in deploy_json:
-        value = deploy_json.get("password")
-        if value.startswith("@env:"):
+        value = deploy_json["password"]
+        if isinstance(value, str) and value.startswith("@env:"):
             var = value[5:]
             password = os.environ.get(var)
             if not password:
                 log.error(f"Environment variable '{var}' is not set.")
                 return 1
+        elif isinstance(value, str):
+            password = value
 
     # private key (optional)
     private_key_file = None
     private_key_pass = None
     if "private_key_file" in deploy_json:
-        private_key_file = deploy_json.get("private_key_file")
-        if "private_key_pass" in deploy_json and deploy_json.get(
-            "private_key_pass"
-        ).startswith("@env:"):
-            var = deploy_json.get("private_key_pass")[5:]
-            private_key_pass = os.environ.get(var)
+        key_file = deploy_json["private_key_file"]
+        if isinstance(key_file, str):
+            private_key_file = key_file
+        if "private_key_pass" in deploy_json:
+            key_pass = deploy_json["private_key_pass"]
+            if isinstance(key_pass, str) and key_pass.startswith("@env:"):
+                var = key_pass[5:]
+                private_key_pass = os.environ.get(var)
+            elif isinstance(key_pass, str):
+                private_key_pass = key_pass
 
     if not password and not private_key_file:
         password = getpass.getpass(prompt=f"Password for {user}@{host}: ")
@@ -119,7 +129,8 @@ def main():
                 private_key_pass=private_key_pass,
                 actions=actions,
             )
-        except:
+        except Exception:
+            log.exception("SSH actions failed.")
             return 1
 
     # post actions
@@ -128,7 +139,8 @@ def main():
         try:
             for act in post_actions:
                 exec_local_cmd_without_response(act)
-        except:
+        except Exception:
+            log.exception("Post-actions failed.")
             return 1
 
 
