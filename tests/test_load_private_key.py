@@ -39,6 +39,26 @@ def test_load_private_key_supported_algorithms(tmp_path, key_type, expected_cls)
     assert isinstance(pkey, expected_cls)
 
 
+def test_load_private_key_with_passphrase(tmp_path):
+    key_path = tmp_path / "id_ed25519"
+    subprocess.run(
+        [
+            "ssh-keygen",
+            "-t",
+            "ed25519",
+            "-f",
+            str(key_path),
+            "-N",
+            "s3cret",
+            "-q",
+        ],
+        check=True,
+    )
+
+    pkey = load_private_key(str(key_path), password="s3cret")
+    assert isinstance(pkey, paramiko.Ed25519Key)
+
+
 def test_load_private_key_missing_file(tmp_path):
     missing = tmp_path / "does-not-exist"
     with pytest.raises(Exception):

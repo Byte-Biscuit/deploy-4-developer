@@ -1,4 +1,5 @@
 import codecs
+import inspect
 import locale
 import subprocess
 import time
@@ -20,9 +21,14 @@ def load_private_key(filename: str, password: str | None = None):
 
     Uses Paramiko's type-agnostic loader so callers need not know the key type.
     """
-    # Paramiko 4.0 uses `passphrase` (bytes); later versions renamed it to `password`.
-    passphrase = password.encode() if password is not None else None
-    return paramiko.PKey.from_path(filename, passphrase=passphrase)
+    # cryptography requires bytes. Paramiko 4 names the arg passphrase; 5+ renamed it password.
+    secret = password.encode() if password is not None else None
+    arg = (
+        "password"
+        if "password" in inspect.signature(paramiko.PKey.from_path).parameters
+        else "passphrase"
+    )
+    return paramiko.PKey.from_path(filename, **{arg: secret})
 
 
 def ssh_action(
